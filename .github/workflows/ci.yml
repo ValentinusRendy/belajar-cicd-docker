@@ -9,7 +9,8 @@ jobs:
             - name: Ucapin salam
               run: echo "Halo, ini pipeline pertamaku!"
             - name: Cek waktu sekarang
-              run: date              
+              run: date      
+                      
     lint:
         runs-on: ubuntu-latest
         steps:
