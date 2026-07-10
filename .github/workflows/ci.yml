@@ -1,31 +1,53 @@
-name: Pipeline Pertama
-on:
-    push:
-         branches: [ "main" ]
-jobs:
-    hello:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Ucapin salam
-              run: echo "Halo, ini pipeline pertamaku!"
-            - name: Cek waktu sekarang
-              run: date      
+name: Pipeline Phase 4
 
-    lint:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Install flake8
-              run: pip install flake8
-            - name: Run linter
-              run: flake8 app.py --max-line-length=120
-              
-    test:
-        needs: lint           # baru jalan setelah lint
-        runs-on: ubuntu-latest 
-        steps:
-            - uses: actions/checkout@v4
-            - name: Install pytest
-              run: pip install pytest
-            - name: Run unit tests
-              run: pytest test_app.py -v
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  backend-test:
+    runs-on: [self-hosted, Linux]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Backend Unit Test
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w "/workspace/aegira-loan-service (Backend)" \
+            maven:3.9.9-eclipse-temurin-21 \
+            mvn clean test
+
+  frontend-test:
+    runs-on: [self-hosted, Linux]
+    needs: backend-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Frontend Test
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w "/workspace/creditappdemo (Frontend)" \
+            mcr.microsoft.com/playwright:v1.54.2-noble \
+            bash -c "
+              npm ci &&
+              npx playwright test
+            "
+
+  deploy:
+    runs-on: [self-hosted, Linux]
+    needs:
+      - backend-test
+      - frontend-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy aplikasi
+        run: |
+          docker compose up -d --build

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+    runner:
+        image: myoung34/github-runner:latest
+        container_name: github-runner
+        environment:
+            REPO_URL: https://github.com/ValentinusRendy/belajar-cicd-docker
+            RUNNER_NAME: laptop-runner
+            RUNNER_TOKEN: BMEV3IJE6AMU4QR5ITGNVTLKKCV5M  # ganti dengan token
+            LABELS: docker-local
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./runner-data:/runner/data
+        restart: unless-stopped
